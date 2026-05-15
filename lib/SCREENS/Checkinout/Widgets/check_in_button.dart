@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gym_user/WIDGETS/appstyle.dart';
 
-class CheckInButton extends StatelessWidget {
+class CheckInButton extends StatefulWidget {
   final bool isCheckedIn;
   final VoidCallback onTap;
 
@@ -13,77 +13,151 @@ class CheckInButton extends StatelessWidget {
   });
 
   @override
+  State<CheckInButton> createState() => _CheckInButtonState();
+}
+
+class _CheckInButtonState extends State<CheckInButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _rotationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // ── Layer 1: Outer grey circle ──
+          // ── Layer 1: Outermost light grey circle ──
           Container(
-            width: 230,
-            height: 230,
+            width: 285,
+            height: 245,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              color: Color(0xFFCECECE),
+              color: Color(0xCCFFFDFD),
             ),
           ),
 
-          // ── Layer 2: White gap ──
+          // ── Layer 2: White/near-white ring ──
           Container(
-            width: 200,
-            height: 200,
+            width: 239,
+            height: 238,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: Color(0xFFD9D9D9),
             ),
           ),
 
-          // ── Layer 3: Green / Red button ──
-          Container(
-            width: 198,
-            height: 198,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: isCheckedIn
-                    ? [const Color(0xFFFF6A00), const Color(0xFFFF6A00)]
-                    : [const Color(0xFF56C568), const Color(0xFF1E7E34)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color:
-                      (isCheckedIn
-                              ? const Color(0xFFEF5350)
-                              : const Color(0xFF43A047))
-                          .withOpacity(0.45),
-                  blurRadius: 22,
-                  spreadRadius: 4,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          // ── Layer 3 + Layer 4: Both rotating together ──
+          AnimatedBuilder(
+            animation: _rotationController,
+            builder: (context, child) {
+              return Transform.rotate(
+                angle: _rotationController.value * 2 * 3.14159265,
+                child: child,
+              );
+            },
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                SvgPicture.asset(
-                  'assets/svg/Vector (3).svg',
-                  width: 44,
-                  height: 44,
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white,
-                    BlendMode.srcIn,
+                // ── Layer 3: Soft glow ring (now rotating) ──
+                Container(
+                  width: 210,
+                  height: 210,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: widget.isCheckedIn
+                          ? [
+                              const Color(0xFFFFDDCC), // light orange top
+                              const Color(0xFFFFCCB3), // mid orange
+                              const Color(0xFFFFB347), // warm orange bottom
+                            ]
+                          : [
+                              const Color(0xFFD4F5DC), // light green top
+                              const Color(0xFFB8E6C1), // mid green
+                              const Color(0xFF8ED4A0), // deeper green bottom
+                            ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
                 ),
 
-                const SizedBox(height: 6),
-                Text(
-                  isCheckedIn ? 'Check Out' : 'Check In',
-                  style: AppStyle.text(size: 18, weight: FontWeight.w700, color: Colors.white),
+                // ── Layer 4: Main gradient button (rotating) ──
+                Container(
+                  width: 196,
+                  height: 196,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: widget.isCheckedIn
+                          ? [
+                              const Color(0xFFFFB347),
+                              const Color(0xFFFF8C00),
+                              const Color(0xFFE65C00),
+                            ]
+                          : [
+                              const Color(0xFF5DD16F),
+                              const Color(0xFF1E8C34),
+                            ],
+                      stops: widget.isCheckedIn ? [0.0, 0.5, 1.0] : null,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (widget.isCheckedIn
+                                ? const Color(0xFFFF6A00)
+                                : const Color(0xFF2EAD47))
+                            .withOpacity(0.5),
+                        blurRadius: 24,
+                        spreadRadius: 4,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
+          ),
+
+          // ── Layer 5: Icon + Text (always stays still) ──
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset(
+                'assets/svg/Vector (3).svg',
+                width: 46,
+                height: 46,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                widget.isCheckedIn ? 'Check Out' : 'Check In',
+                style: AppStyle.text(
+                  size: 18,
+                  weight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
         ],
       ),

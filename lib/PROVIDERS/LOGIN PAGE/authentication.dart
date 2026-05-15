@@ -10,7 +10,6 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;

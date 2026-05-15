@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gym_user/SCREENS/Verifications/verification.dart';
 import 'Widgets/header.dart';
 import 'Widgets/live_clock_widget.dart';
 import 'Widgets/check_in_button.dart';
@@ -41,21 +42,40 @@ class _CheckinoutScreenState extends State<CheckinoutScreen> {
     }
   }
 
-  void _handleCheckInOut() {
-    setState(() {
-      if (!_isCheckedIn) {
-        // Check In
-        _isCheckedIn = true;
-        _checkInTime = _formattedNow();
-        _checkOutTime = '--:--';
-        _totalHours = '--:--';
-      } else {
-        // Check Out
-        _isCheckedIn = false;
-        _checkOutTime = _formattedNow();
-        _totalHours = _calcDuration(_checkInTime, _checkOutTime);
-      }
-    });
+  Future<void> _handleCheckInOut() async {
+    final result = await Navigator.push<bool>(
+      context,
+      PageRouteBuilder<bool>(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        pageBuilder: (context, _, _) => VerificationScreen(
+          userName: 'Hariharan S',
+          userAvatar: '',
+          isCheckIn: !_isCheckedIn,
+        ),
+        transitionsBuilder: (context, animation, _, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+    );
+
+    if (result == true && mounted) {
+      setState(() {
+        if (!_isCheckedIn) {
+          _isCheckedIn = true;
+          _checkInTime = _formattedNow();
+          _checkOutTime = '--:--';
+          _totalHours = '--:--';
+        } else {
+          _isCheckedIn = false;
+          _checkOutTime = _formattedNow();
+          _totalHours = _calcDuration(_checkInTime, _checkOutTime);
+        }
+      });
+    }
   }
 
   @override
@@ -68,17 +88,14 @@ class _CheckinoutScreenState extends State<CheckinoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Header
               const HomeHeader(userName: 'Hariharan S'),
 
               const SizedBox(height: 40),
 
-              // Live Clock
               const LiveClockWidget(),
 
               const SizedBox(height: 50),
 
-              // Check In / Out Button
               CheckInButton(
                 isCheckedIn: _isCheckedIn,
                 onTap: _handleCheckInOut,
@@ -86,16 +103,12 @@ class _CheckinoutScreenState extends State<CheckinoutScreen> {
 
               const SizedBox(height: 30),
 
-              // Location Badge
               const LocationBadge(
                 locationName: 'Techfifo Innovations, Palakkad',
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 44),
 
-              const SizedBox(height: 16),
-
-              // Attendance Stats
               AttendanceStatsRow(
                 checkInTime: _checkInTime,
                 totalHours: _totalHours,
