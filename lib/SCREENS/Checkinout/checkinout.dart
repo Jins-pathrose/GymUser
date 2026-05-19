@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gym_user/PROVIDERS/Checkin%20Page/checkinprovider.dart';
+import 'package:provider/provider.dart';
+
+import 'package:gym_user/SCREENS/Login/login_screen.dart';
 import 'package:gym_user/SCREENS/Verifications/verification.dart';
+
 import 'Widgets/header.dart';
 import 'Widgets/live_clock_widget.dart';
 import 'Widgets/check_in_button.dart';
@@ -10,50 +15,38 @@ class CheckinoutScreen extends StatefulWidget {
   const CheckinoutScreen({super.key});
 
   @override
-  State<CheckinoutScreen> createState() => _CheckinoutScreenState();
+  State<CheckinoutScreen> createState() =>
+      _CheckinoutScreenState();
 }
 
-class _CheckinoutScreenState extends State<CheckinoutScreen> {
-  bool _isCheckedIn = false;
-  String _checkInTime = '--:--';
-  String _totalHours = '--:--';
-  String _checkOutTime = '--:--';
+class _CheckinoutScreenState
+    extends State<CheckinoutScreen> {
+  @override
+  void initState() {
+    super.initState();
 
-  String _formattedNow() {
-    final now = DateTime.now();
-    final h = now.hour.toString().padLeft(2, '0');
-    final m = now.minute.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
-
-  String _calcDuration(String from, String to) {
-    try {
-      final fParts = from.split(':');
-      final tParts = to.split(':');
-      final fMins = int.parse(fParts[0]) * 60 + int.parse(fParts[1]);
-      final tMins = int.parse(tParts[0]) * 60 + int.parse(tParts[1]);
-      final diff = tMins - fMins;
-      if (diff < 0) return '--:--';
-      final h = (diff ~/ 60).toString().padLeft(2, '0');
-      final m = (diff % 60).toString().padLeft(2, '0');
-      return '$h:$m';
-    } catch (_) {
-      return '--:--';
-    }
+    Future.microtask(() {
+      context.read<CheckinProvider>().loadUserData();
+    });
   }
 
   Future<void> _handleCheckInOut() async {
+    final provider =
+        context.read<CheckinProvider>();
+
     final result = await Navigator.push<bool>(
       context,
       PageRouteBuilder<bool>(
         opaque: false,
         barrierColor: Colors.transparent,
-        pageBuilder: (context, _, _) => VerificationScreen(
-          userName: 'Hariharan S',
+        pageBuilder: (context, _, __) =>
+            VerificationScreen(
+          userName: provider.userName,
           userAvatar: '',
-          isCheckIn: !_isCheckedIn,
+          isCheckIn: !provider.isCheckedIn,
         ),
-        transitionsBuilder: (context, animation, _, child) {
+        transitionsBuilder:
+            (context, animation, _, child) {
           return FadeTransition(
             opacity: animation,
             child: child,
@@ -63,63 +56,82 @@ class _CheckinoutScreenState extends State<CheckinoutScreen> {
     );
 
     if (result == true && mounted) {
-      setState(() {
-        if (!_isCheckedIn) {
-          _isCheckedIn = true;
-          _checkInTime = _formattedNow();
-          _checkOutTime = '--:--';
-          _totalHours = '--:--';
-        } else {
-          _isCheckedIn = false;
-          _checkOutTime = _formattedNow();
-          _totalHours = _calcDuration(_checkInTime, _checkOutTime);
-        }
-      });
+      provider.updateAttendance();
     }
+  }
+
+  Future<void> _handleLogout() async {
+    await context.read<CheckinProvider>().logout();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 35),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const HomeHeader(userName: 'Hariharan S'),
-
-              const SizedBox(height: 40),
-
-              const LiveClockWidget(),
-
-              const SizedBox(height: 50),
-
-              CheckInButton(
-                isCheckedIn: _isCheckedIn,
-                onTap: _handleCheckInOut,
+    return Consumer<CheckinProvider>(
+      builder: (context, provider, child) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF0F0F0),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 35,
               ),
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.center,
+                children: [
+                  HomeHeader(
+                    userName: provider.userName,
+                    onLogout: _handleLogout,
+                  ),
 
-              const SizedBox(height: 30),
+                  const SizedBox(height: 40),
 
-              const LocationBadge(
-                locationName: 'Techfifo Innovations, Palakkad',
+                  const LiveClockWidget(),
+
+                  const SizedBox(height: 50),
+
+                  CheckInButton(
+                    isCheckedIn:
+                        provider.isCheckedIn,
+                    onTap: _handleCheckInOut,
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  const LocationBadge(
+                    locationName:
+                        'Techfifo Innovations, Palakkad',
+                  ),
+
+                  const SizedBox(height: 44),
+
+                  AttendanceStatsRow(
+                    checkInTime:
+                        provider.checkInTime,
+                    totalHours:
+                        provider.totalHours,
+                    checkOutTime:
+                        provider.checkOutTime,
+                  ),
+
+                  const SizedBox(height: 18),
+                ],
               ),
-
-              const SizedBox(height: 44),
-
-              AttendanceStatsRow(
-                checkInTime: _checkInTime,
-                totalHours: _totalHours,
-                checkOutTime: _checkOutTime,
-              ),
-
-              const SizedBox(height: 18),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

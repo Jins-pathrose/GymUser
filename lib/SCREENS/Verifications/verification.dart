@@ -75,7 +75,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
     return Scaffold(
       // ── Fully transparent so the page behind shows through ──
-      backgroundColor: Colors.black.withOpacity(0.5),
+      backgroundColor: const Color(0xD9000000),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
@@ -83,7 +83,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 60),
 
               // ── Camera Card ──
               CameraCard(
@@ -93,7 +93,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 cameraHeight: screenHeight * 0.48,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 1),
 
               const SizedBox(height: 20),
 
