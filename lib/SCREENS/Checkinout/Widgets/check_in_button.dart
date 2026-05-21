@@ -81,17 +81,22 @@ class _CheckInButtonState extends State<CheckInButton>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: widget.isCheckedIn
-                          ? [
-                              const Color(0xFFFFDDCC), // light orange top
-                              const Color(0xFFFFCCB3), // mid orange
-                              const Color(0xFFFFB347), // warm orange bottom
-                            ]
-                          : [
-                              const Color(0xFFD4F5DC), // light green top
-                              const Color(0xFFB8E6C1), // mid green
-                              const Color(0xFF8ED4A0), // deeper green bottom
-                            ],
+                      // colors: widget.isCheckedIn
+                      //     ? [
+                      //         const Color(0xFFFFDDCC), // light orange top
+                      //         const Color(0xFFFFCCB3), // mid orange
+                      //         const Color(0xFFFFB347), // warm orange bottom
+                      //       ]
+                      //     : [
+                      //         const Color(0xFFD4F5DC), // light green top
+                      //         const Color(0xFFB8E6C1), // mid green
+                      //         const Color(0xFF8ED4A0), // deeper green bottom
+                      //       ],
+                      colors: [
+                        const Color(0xFFD4F5DC),
+                        const Color(0xFFB8E6C1),
+                        const Color(0xFF8ED4A0),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -105,26 +110,29 @@ class _CheckInButtonState extends State<CheckInButton>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: widget.isCheckedIn
-                          ? [
-                              const Color(0xFFFFB347),
-                              const Color(0xFFFF8C00),
-                              const Color(0xFFE65C00),
-                            ]
-                          : [
-                              const Color(0xFF5DD16F),
-                              const Color(0xFF1E8C34),
-                            ],
+                      // colors: widget.isCheckedIn
+                      //     ? [
+                      //         const Color(0xFFFFB347),
+                      //         const Color(0xFFFF8C00),
+                      //         const Color(0xFFE65C00),
+                      //       ]
+                      //     : [const Color(0xFF5DD16F), const Color(0xFF1E8C34)],
+                      colors: [
+                        const Color(0xFF5DD16F),
+                        const Color(0xFF1E8C34),
+                      ],
                       stops: widget.isCheckedIn ? [0.0, 0.5, 1.0] : null,
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: (widget.isCheckedIn
-                                ? const Color(0xFFFF6A00)
-                                : const Color(0xFF2EAD47))
-                            .withOpacity(0.5),
+                        // color:
+                        //     (widget.isCheckedIn
+                        //             ? const Color(0xFFFF6A00)
+                        //             : const Color(0xFF2EAD47))
+                        //         .withOpacity(0.5),
+                        color: const Color(0xFF2EAD47).withOpacity(0.5),
                         blurRadius: 24,
                         spreadRadius: 4,
                       ),
@@ -150,7 +158,8 @@ class _CheckInButtonState extends State<CheckInButton>
               ),
               const SizedBox(height: 8),
               Text(
-                widget.isCheckedIn ? 'Check Out' : 'Check In',
+                // widget.isCheckedIn ? 'Check Out' : 'Check In',
+                'Check In',
                 style: AppStyle.text(
                   size: 18,
                   weight: FontWeight.w700,

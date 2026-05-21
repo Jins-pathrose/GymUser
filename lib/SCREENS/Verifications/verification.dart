@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
+import 'package:gym_user/PROVIDERS/VERIFICATION PAGE/verification_provider.dart';
 import 'package:gym_user/SCREENS/Verifications/Widgets/camera_card.dart';
-import 'package:gym_user/SCREENS/Verifications/Widgets/location_row.dart';
-import 'package:gym_user/SCREENS/Verifications/Widgets/verification_header.dart';
 import 'package:gym_user/WIDGETS/appstyle.dart';
-import 'widgets/success_sheet.dart';
-import 'widgets/failed_sheet.dart';
-import 'widgets/stats_row.dart';
+import 'package:provider/provider.dart';
 
-enum VerificationStatus { scanning, success, failed }
+import 'widgets/failed_sheet.dart';
+import 'widgets/success_sheet.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String userName;
@@ -27,94 +24,84 @@ class VerificationScreen extends StatefulWidget {
 }
 
 class _VerificationScreenState extends State<VerificationScreen> {
-  CameraController? _cameraController;
-  bool _isCameraInitialized = false;
-  VerificationStatus _status = VerificationStatus.scanning;
-
   @override
   void initState() {
     super.initState();
-    _initCamera();
-  }
-
-  Future<void> _initCamera() async {
-    final cameras = await availableCameras();
-    if (cameras.isEmpty) return;
-
-    final frontCam = cameras.firstWhere(
-      (c) => c.lensDirection == CameraLensDirection.front,
-      orElse: () => cameras.first,
-    );
-
-    _cameraController = CameraController(
-      frontCam,
-      ResolutionPreset.high,
-      enableAudio: false,
-    );
-
-    await _cameraController!.initialize();
-    if (mounted) setState(() => _isCameraInitialized = true);
+    Future.microtask(() {
+      context.read<VerificationProvider>().initCamera();
+    });
   }
 
   @override
   void dispose() {
-    _cameraController?.dispose();
+    context.read<VerificationProvider>().disposeCamera();
     super.dispose();
   }
 
-  void _setStatus(VerificationStatus status) =>
-      setState(() => _status = status);
-
   void _onContinue() => Navigator.pop(context, true);
-  void _onTryAgain() => setState(() => _status = VerificationStatus.scanning);
   void _onBack() => Navigator.pop(context, false);
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<VerificationProvider>(context);
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      // ── Fully transparent so the page behind shows through ──
-      backgroundColor: const Color(0xD9000000),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 60),
+      backgroundColor: Colors.transparent, // ← transparent background
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xD9000000), // dark overlay
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// Header — Welcome Back + Avatar + Back
+                // VerificationHeader(
+                //   userName: widget.userName,
+                //   userAvatar: widget.userAvatar,
+                //   onBack: _onBack,
+                // ),
+                const SizedBox(height: 32),
 
-              // ── Camera Card ──
-              CameraCard(
-                controller: _cameraController,
-                isInitialized: _isCameraInitialized,
-                status: _status,
-                cameraHeight: screenHeight * 0.48,
-              ),
+                /// Camera Card — centered
+                CameraCard(
+                  controller: provider.cameraController,
+                  isInitialized: provider.isCameraInitialized,
+                  status: provider.status,
+                  cameraHeight: screenHeight * 0.48,
+                ),
 
-              const SizedBox(height: 1),
+                const SizedBox(height: 20),
 
-              const SizedBox(height: 20),
+                /// Status-based bottom section
+                if (provider.status == VerificationStatus.scanning)
+                  _buildScanningState(provider),
 
-              SuccessSheet(onContinue: _onContinue),
+                if (provider.status == VerificationStatus.success)
+                  SuccessSheet(onContinue: _onContinue),
 
-              const SizedBox(height: 24),
-
-              const SizedBox(height: 16),
-            ],
+                if (provider.status == VerificationStatus.failed)
+                  FailedSheet(
+                    onTryAgain: () => provider.resetVerification(),
+                    onBack: _onBack,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildScanningState() {
+  Widget _buildScanningState(VerificationProvider provider) {
     return Column(
       children: [
         Center(
           child: Text(
-            'Scanning face...',
+            provider.isProcessing ? 'Verifying...' : 'Scanning face...',
             style: AppStyle.text(
               size: 14,
               weight: FontWeight.w400,
@@ -122,42 +109,41 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
-        // ── DEV buttons — replace with your real API call ──
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                onPressed: () => _setStatus(VerificationStatus.success),
-                child: const Text(
-                  'Simulate Success',
-                  style: TextStyle(color: Colors.white),
-                ),
+
+        const SizedBox(height: 20),
+
+        SizedBox(
+          width: double.infinity,
+          height: 54,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
               ),
+              elevation: 0,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+            onPressed: provider.isProcessing
+                ? null // disabled while loading
+                : () => provider.performCheckIn(),
+            child: provider.isProcessing
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : Text(
+                    widget.isCheckIn ? 'Check In' : 'Check Out',
+                    style: AppStyle.text(
+                      size: 17,
+                      weight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                onPressed: () => _setStatus(VerificationStatus.failed),
-                child: const Text(
-                  'Simulate Fail',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );

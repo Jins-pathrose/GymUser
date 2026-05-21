@@ -12,26 +12,48 @@ class CheckinProvider with ChangeNotifier {
 
   Map<String, dynamic>? _memberData;
 
+  /// Getters
   bool get isCheckedIn => _isCheckedIn;
 
   String get checkInTime => _checkInTime;
+
   String get checkOutTime => _checkOutTime;
+
   String get totalHours => _totalHours;
 
-  Map<String, dynamic>? get memberData => _memberData;
+  Map<String, dynamic>? get memberData =>
+      _memberData;
 
+  /// User Name
   String get userName {
-    if (_memberData == null) return 'User';
+    if (_memberData == null) {
+      return 'User';
+    }
 
-    final firstName = _memberData?['first_name'] ?? '';
-    final lastName = _memberData?['last_name'] ?? '';
+    final firstName =
+        _memberData?['first_name'] ?? '';
+
+    final lastName =
+        _memberData?['last_name'] ?? '';
 
     return '$firstName $lastName';
   }
 
+  /// Gym Name
+  String get gymName {
+    if (_memberData == null) {
+      return 'Gym';
+    }
+
+    return _memberData?['gym_name'] ??
+        'Gym';
+  }
+
   /// Load User Data
   Future<void> loadUserData() async {
-    _memberData = await SharedPrefService.getMemberData();
+    _memberData =
+        await SharedPrefService
+            .getMemberData();
 
     notifyListeners();
   }
@@ -40,31 +62,48 @@ class CheckinProvider with ChangeNotifier {
   String _formattedNow() {
     final now = DateTime.now();
 
-    final h = now.hour.toString().padLeft(2, '0');
-    final m = now.minute.toString().padLeft(2, '0');
+    final h = now.hour
+        .toString()
+        .padLeft(2, '0');
+
+    final m = now.minute
+        .toString()
+        .padLeft(2, '0');
 
     return '$h:$m';
   }
 
   /// Calculate Duration
-  String _calcDuration(String from, String to) {
+  String _calcDuration(
+    String from,
+    String to,
+  ) {
     try {
       final fParts = from.split(':');
+
       final tParts = to.split(':');
 
       final fMins =
-          int.parse(fParts[0]) * 60 + int.parse(fParts[1]);
+          int.parse(fParts[0]) * 60 +
+              int.parse(fParts[1]);
 
       final tMins =
-          int.parse(tParts[0]) * 60 + int.parse(tParts[1]);
+          int.parse(tParts[0]) * 60 +
+              int.parse(tParts[1]);
 
       final diff = tMins - fMins;
 
-      if (diff < 0) return '--:--';
+      if (diff < 0) {
+        return '--:--';
+      }
 
-      final h = (diff ~/ 60).toString().padLeft(2, '0');
+      final h = (diff ~/ 60)
+          .toString()
+          .padLeft(2, '0');
 
-      final m = (diff % 60).toString().padLeft(2, '0');
+      final m = (diff % 60)
+          .toString()
+          .padLeft(2, '0');
 
       return '$h:$m';
     } catch (_) {
@@ -87,8 +126,10 @@ class CheckinProvider with ChangeNotifier {
 
       _checkOutTime = _formattedNow();
 
-      _totalHours =
-          _calcDuration(_checkInTime, _checkOutTime);
+      _totalHours = _calcDuration(
+        _checkInTime,
+        _checkOutTime,
+      );
     }
 
     notifyListeners();
@@ -97,5 +138,17 @@ class CheckinProvider with ChangeNotifier {
   /// Logout
   Future<void> logout() async {
     await SharedPrefService.clearData();
+
+    _memberData = null;
+
+    _isCheckedIn = false;
+
+    _checkInTime = '--:--';
+
+    _checkOutTime = '--:--';
+
+    _totalHours = '--:--';
+
+    notifyListeners();
   }
 }

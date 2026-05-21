@@ -1,5 +1,6 @@
 // PROVIDER CLASS - auth_provider.dart
 import 'package:flutter/material.dart';
+import 'package:gym_user/CORE/API/apiconfig.dart';
 import 'package:gym_user/CORE/Services/sharedpreference.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -18,7 +19,7 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final response = await http.post(
-        Uri.parse('https://gymsoftware.archanastones.in/api/user/login/'), // Replace with your API URL
+        Uri.parse(ApiConfig.loginUrl), // Replace with your API URL
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': email,

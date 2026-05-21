@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import '../verification.dart';
+import 'package:gym_user/PROVIDERS/VERIFICATION%20PAGE/verification_provider.dart';
+import 'package:gym_user/PROVIDERS/VERIFICATION PAGE/verification_provider.dart';
 
 class CameraCard extends StatelessWidget {
   final CameraController? controller;
