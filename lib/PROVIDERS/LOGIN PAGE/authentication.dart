@@ -57,13 +57,12 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Network error. Please try again.';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
+  print("LOGIN ERROR: $e");
+  _errorMessage = e.toString();
+  notifyListeners();
+  return false;
+}
   }
-
 
   void clearError() {
     _errorMessage = null;

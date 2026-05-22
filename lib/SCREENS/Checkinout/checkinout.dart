@@ -32,35 +32,60 @@ class _CheckinoutScreenState extends State<CheckinoutScreen> {
 
   /// Check In Action
   Future<void> _handleCheckInOut() async {
-    final provider = context.read<CheckinProvider>();
+  final provider = context.read<CheckinProvider>();
 
-    final result = await Navigator.push<bool>(
-      context,
-
-      PageRouteBuilder<bool>(
-        opaque: false,
-
-        barrierColor: Colors.transparent,
-
-        pageBuilder: (context, _, __) => VerificationScreen(
-          userName: provider.userName,
-
-          userAvatar: '',
-
-          isCheckIn: true,
-        ),
-
-        transitionsBuilder: (context, animation, _, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-      ),
-    );
-
-    /// Optional Attendance Update
-    if (result == true && mounted) {
-      // provider.updateAttendance();
-    }
+  // Already checked in — show popup instead of navigating
+  if (provider.isCheckedIn) {
+    _showAlreadyCheckedInDialog(provider.checkInTime);
+    return;
   }
+
+  final result = await Navigator.push<bool>(
+    context,
+    PageRouteBuilder<bool>(
+      opaque: false,
+      barrierColor: Colors.transparent,
+      pageBuilder: (context, _, __) => VerificationScreen(
+        userName: provider.userName,
+        userAvatar: '',
+        isCheckIn: true,
+      ),
+      transitionsBuilder: (context, animation, _, child) {
+        return FadeTransition(opacity: animation, child: child);
+      },
+    ),
+  );
+
+  if (result == true && mounted) {
+    // provider.updateAttendance();
+  }
+}
+
+void _showAlreadyCheckedInDialog(String checkInTime) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Row(
+        children: [
+          Icon(Icons.info_outline, color: Colors.orange),
+          SizedBox(width: 8),
+          Text('Already Checked In'),
+        ],
+      ),
+      content: Text(
+        'You have already checked in today at $checkInTime.',
+        style: const TextStyle(fontSize: 15),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+}
 
   /// Logout
   Future<void> _handleLogout() async {
