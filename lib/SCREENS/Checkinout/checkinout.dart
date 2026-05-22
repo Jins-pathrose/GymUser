@@ -127,9 +127,9 @@ class _CheckinoutScreenState extends State<CheckinoutScreen> {
                   AttendanceStatsRow(
                     checkInTime: provider.checkInTime,
 
-                    totalHours: provider.totalHours,
+                    // totalHours: provider.totalHours,
 
-                    checkOutTime: provider.checkOutTime,
+                    // checkOutTime: provider.checkOutTime,
                   ),
 
                   const SizedBox(height: 18),

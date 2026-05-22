@@ -4,11 +4,13 @@ import 'package:gym_user/WIDGETS/appstyle.dart';
 class FailedSheet extends StatelessWidget {
   final VoidCallback onTryAgain;
   final VoidCallback onBack;
+  final String message;
 
   const FailedSheet({
     super.key,
     required this.onTryAgain,
     required this.onBack,
+    required this.message,
   });
 
   @override
@@ -25,12 +27,9 @@ class FailedSheet extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'You are outside the authorized area',
-          style: AppStyle.text(
-            size: 13,
-            weight: FontWeight.w400,
-            color: Colors.white60,
-          ),
+          message,
+          textAlign: TextAlign.center,
+          style: AppStyle.text(size: 14, color: Colors.white70),
         ),
         const SizedBox(height: 20),
 
@@ -68,9 +67,7 @@ class FailedSheet extends StatelessWidget {
             style: TextButton.styleFrom(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
-                side: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.2),
-                ),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
               ),
             ),
             onPressed: onBack,

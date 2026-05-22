@@ -84,11 +84,11 @@ class VerificationProvider with ChangeNotifier {
 
       // 2. Get location
       final position = await _getLocation();
-      final latitude  = position?.latitude.toString()  ?? '10.523698';
-      final longitude = position?.longitude.toString() ?? '76.258789';
+      final latitude = position?.latitude.toString() ?? '0.0';
+      final longitude = position?.longitude.toString() ?? '0.0';
 
-print("$latitude $longitude");
-print("suiiiiiii");
+      print("$latitude $longitude");
+      print("suiiiiiii");
       // 3. Get auth token
       final token = await SharedPrefService.getAccessToken();
 
@@ -99,13 +99,10 @@ print("suiiiiiii");
 
       final request = http.MultipartRequest('POST', uri)
         ..headers['Authorization'] = 'Bearer $token'
-        ..fields['latitude']  = latitude
+        ..fields['latitude'] = latitude
         ..fields['longitude'] = longitude
         ..files.add(
-          await http.MultipartFile.fromPath(
-            'face_image',
-            imageFile.path,
-          ),
+          await http.MultipartFile.fromPath('face_image', imageFile.path),
         );
 
       final streamedResponse = await request.send();
@@ -113,16 +110,39 @@ print("suiiiiiii");
 
       debugPrint('CheckIn Response: ${response.statusCode} ${response.body}');
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
         if (data['success'] == true) {
           _status = VerificationStatus.success;
+
+          final checkin = data['checkin'];
+
+          final prefs = await SharedPreferences.getInstance();
+
+          await prefs.setString(
+            'check_in_time',
+            checkin['check_in_time'] ?? '',
+          );
+
+          await prefs.setString(
+            'check_out_time',
+            checkin['check_out_time'] ?? '',
+          );
+
+          await prefs.setString(
+            'total_hours',
+            checkin['duration_formatted'] ?? '0h 0m',
+          );
         } else {
           _errorMessage = data['message'] ?? 'Check-in failed.';
           _status = VerificationStatus.failed;
         }
       } else {
-        _errorMessage = 'Server error: ${response.statusCode}';
+        // Handles 400, 401, 500 etc
+        _errorMessage =
+            data['message'] ?? 'Server error: ${response.statusCode}';
+
         _status = VerificationStatus.failed;
       }
     } catch (e) {

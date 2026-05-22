@@ -58,12 +58,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// Header — Welcome Back + Avatar + Back
-                // VerificationHeader(
-                //   userName: widget.userName,
-                //   userAvatar: widget.userAvatar,
-                //   onBack: _onBack,
-                // ),
                 const SizedBox(height: 32),
 
                 /// Camera Card — centered
@@ -85,6 +79,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
                 if (provider.status == VerificationStatus.failed)
                   FailedSheet(
+                    message: provider.errorMessage ?? 'Verification failed',
                     onTryAgain: () => provider.resetVerification(),
                     onBack: _onBack,
                   ),
