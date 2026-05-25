@@ -75,7 +75,17 @@ class CheckinProvider with ChangeNotifier {
       );
 
       debugPrint('STATUS API RESPONSE: ${response.body}');
+      if (response.statusCode == 401) {
+        final refreshed = await SharedPrefService.refreshAccessToken();
 
+        if (refreshed) {
+          await checkCheckinStatus();
+          return;
+        } else {
+          await SharedPrefService.clearData();
+          return;
+        }
+      }
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 

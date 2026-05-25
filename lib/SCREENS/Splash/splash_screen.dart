@@ -25,13 +25,15 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 1200),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.7,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     _controller.forward();
 
@@ -39,11 +41,19 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateAfterDelay() async {
-    // Wait for animation + minimum splash duration
     await Future.delayed(const Duration(milliseconds: 2000));
 
     final token = await SharedPrefService.getAccessToken();
-    final bool isLoggedIn = token != null && token.isNotEmpty;
+
+    bool isLoggedIn = false;
+
+    if (token != null && token.isNotEmpty) {
+      final isValid = await SharedPrefService.validateAccessToken();
+
+      if (isValid) {
+        isLoggedIn = true;
+      }
+    }
 
     if (!mounted) return;
 
