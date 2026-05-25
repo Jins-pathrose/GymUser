@@ -161,10 +161,14 @@ class VerificationProvider with ChangeNotifier {
   }
 
   void resetVerification() {
-    _status = VerificationStatus.scanning;
-    _errorMessage = null;
-    notifyListeners();
-  }
+  _status = VerificationStatus.scanning;
+
+  _errorMessage = null;
+
+  _isProcessing = false;
+
+  notifyListeners();
+}
 
   Future<void> disposeCamera() async {
     await _cameraController?.dispose();

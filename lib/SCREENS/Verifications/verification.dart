@@ -25,12 +25,17 @@ class VerificationScreen extends StatefulWidget {
 
 class _VerificationScreenState extends State<VerificationScreen> {
   @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      context.read<VerificationProvider>().initCamera();
-    });
-  }
+void initState() {
+  super.initState();
+
+  Future.microtask(() {
+    final provider = context.read<VerificationProvider>();
+
+    provider.resetVerification();
+
+    provider.initCamera();
+  });
+}
 
   @override
   void dispose() {
