@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gym_user/CORE/Services/sharedpreference.dart';
 import 'package:gym_user/PROVIDERS/Login%20Page/authentication.dart';
 import 'package:gym_user/SCREENS/Login/Widgets/circular_back_button.dart';
 import 'package:gym_user/SCREENS/Login/Widgets/continue_button.dart';
@@ -13,65 +14,69 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() =>
-      _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState
-    extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   /// Form Key
-  final _formKey =
-      GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
   /// Controllers
-  final TextEditingController
-  emailController =
-      TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
-  final TextEditingController
-  passwordController =
-      TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    _checkTokenAndRedirect();
+  }
+
+  /// Check if access token exists → redirect to CheckinoutScreen
+  Future<void> _checkTokenAndRedirect() async {
+    final token = await SharedPrefService.getAccessToken();
+
+    if (token != null && token.isNotEmpty) {
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CheckinoutScreen(),
+        ),
+      );
+    }
+  }
 
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider =
-        Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFF9F9F9),
+      backgroundColor: const Color(0xFFF9F9F9),
 
       body: SafeArea(
         child: SingleChildScrollView(
-          padding:
-              const EdgeInsets.symmetric(
-            horizontal: 24,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
 
           child: Form(
             key: _formKey,
 
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
                 const SizedBox(height: 150),
 
                 /// Back Button
                 CircularBackButton(
-                  onPressed: () =>
-                      Navigator.maybePop(
-                    context,
-                  ),
+                  onPressed: () => Navigator.maybePop(context),
                 ),
 
                 const SizedBox(height: 15),
@@ -79,13 +84,10 @@ class _LoginScreenState
                 /// Welcome Title
                 Text(
                   'Welcome Back,',
-
                   style: AppStyle.text(
                     size: 30,
-                    weight:
-                        FontWeight.w800,
-                    color:
-                        AppStyle.primaryColor,
+                    weight: FontWeight.w800,
+                    color: AppStyle.primaryColor,
                     height: 1.2,
                   ),
                 ),
@@ -94,15 +96,10 @@ class _LoginScreenState
 
                 Text(
                   'Login to your Account',
-
                   style: AppStyle.text(
                     size: 16,
-                    weight:
-                        FontWeight.w400,
-                    color:
-                        const Color(
-                      0xFF888888,
-                    ),
+                    weight: FontWeight.w400,
+                    color: const Color(0xFF888888),
                     height: 1.2,
                   ),
                 ),
@@ -112,37 +109,20 @@ class _LoginScreenState
                 /// Email Field
                 CustomTextField(
                   label: 'Email Id',
-
-                  hintText:
-                      'Enter your email',
-
-                  prefixIcon:
-                      Icons.mail_outline,
-
-                  controller:
-                      emailController,
-
-                  keyboardType:
-                      TextInputType
-                          .emailAddress,
-
-                  validator: (
-                    value,
-                  ) {
-                    if (value == null ||
-                        value.isEmpty) {
+                  hintText: 'Enter your email',
+                  prefixIcon: Icons.mail_outline,
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
                       return 'Please enter email';
                     }
 
-                    final emailRegex =
-                        RegExp(
+                    final emailRegex = RegExp(
                       r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                     );
 
-                    if (!emailRegex
-                        .hasMatch(
-                      value,
-                    )) {
+                    if (!emailRegex.hasMatch(value)) {
                       return 'Enter valid email';
                     }
 
@@ -155,28 +135,16 @@ class _LoginScreenState
                 /// Password Field
                 CustomTextField(
                   label: 'Password',
-
-                  hintText:
-                      'Enter your password',
-
-                  prefixIcon:
-                      Icons.lock_outline,
-
-                  controller:
-                      passwordController,
-
+                  hintText: 'Enter your password',
+                  prefixIcon: Icons.lock_outline,
+                  controller: passwordController,
                   obscureText: true,
-
-                  validator: (
-                    value,
-                  ) {
-                    if (value == null ||
-                        value.isEmpty) {
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
                       return 'Please enter password';
                     }
 
-                    if (value.length <
-                        6) {
+                    if (value.length < 6) {
                       return 'Password must be at least 6 characters';
                     }
 
@@ -188,65 +156,32 @@ class _LoginScreenState
 
                 /// Login Button
                 ContinueButton(
-                  isLoading:
-                      authProvider
-                          .isLoading,
+                  isLoading: authProvider.isLoading,
 
                   onPressed: () async {
-                    /// Validate Form
-                    if (!_formKey
-                        .currentState!
-                        .validate()) {
-                      return;
-                    }
+                    if (!_formKey.currentState!.validate()) return;
 
-                    /// Login API
-                    bool success =
-                        await authProvider
-                            .login(
-                      emailController
-                          .text
-                          .trim(),
-
-                      passwordController
-                          .text
-                          .trim(),
+                    bool success = await authProvider.login(
+                      emailController.text.trim(),
+                      passwordController.text.trim(),
                     );
 
-                    /// Success
                     if (success) {
-                      if (!mounted) {
-                        return;
-                      }
+                      if (!mounted) return;
 
-                      Navigator
-                          .pushReplacement(
+                      Navigator.pushReplacement(
                         context,
-
                         MaterialPageRoute(
-                          builder:
-                              (
-                                context,
-                              ) =>
-                                  const CheckinoutScreen(),
+                          builder: (context) => const CheckinoutScreen(),
                         ),
                       );
-                    }
+                    } else {
+                      if (!mounted) return;
 
-                    /// Failed
-                    else {
-                      if (!mounted) {
-                        return;
-                      }
-
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(
+                      ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            authProvider
-                                    .errorMessage ??
-                                'Login failed',
+                            authProvider.errorMessage ?? 'Login failed',
                           ),
                         ),
                       );
@@ -259,21 +194,13 @@ class _LoginScreenState
                 /// Footer Links
                 FooterLinks(
                   onForgotPassword: () {
-                    debugPrint(
-                      'Contact Admin tapped',
-                    );
+                    debugPrint('Contact Admin tapped');
                   },
-
                   onTermsOfService: () {
-                    debugPrint(
-                      'Terms of Service tapped',
-                    );
+                    debugPrint('Terms of Service tapped');
                   },
-
                   onPrivacyPolicy: () {
-                    debugPrint(
-                      'Privacy Policy tapped',
-                    );
+                    debugPrint('Privacy Policy tapped');
                   },
                 ),
 

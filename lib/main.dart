@@ -4,11 +4,12 @@ import 'package:gym_user/PROVIDERS/Checkin%20Page/checkinprovider.dart';
 import 'package:gym_user/PROVIDERS/Login%20Page/authentication.dart';
 import 'package:gym_user/PROVIDERS/Profile%20Page/profile_provider.dart';
 import 'package:gym_user/ROUTES/routes.dart';
+import 'package:gym_user/SCREENS/Splash/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:gym_user/PROVIDERS/VERIFICATION PAGE/verification_provider.dart';
 
 Future<void> main() async {
-    WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   runApp(
     MultiProvider(
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: RoutesClass.login,
+      home: const SplashScreen(),
       routes: RoutesClass.routes,
     );
   }
